@@ -85,7 +85,7 @@ export default function Dashboard() {
         <header className="bg-[#1B4D3E] text-white p-6 border-b-4 border-[#B8D500] flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-white p-2 rounded">
-              <span className="text-3xl font-black text-[#1B4D3E] tracking-tighter">ARCOM</span>
+              <span className="text-3xl font-black text-[#1B4D3E] tracking-tighter">DASH ARCOM</span>
             </div>
             <div>
               <h1 className="text-2xl font-extrabold uppercase italic">Dashboard Tecnologia</h1>
