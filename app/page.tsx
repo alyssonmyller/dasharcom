@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
-import { FileTextIcon, AlertTriangleIcon, LandmarkIcon, UserCircleIcon, CheckCircle2, Rocket, Search, Hourglass, Octagon } from 'lucide-react';
+import { FileTextIcon, AlertTriangleIcon, LandmarkIcon, UserCircleIcon, CheckCircle2, Rocket, Search, Hourglass, Octagon, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 // Tipagem dos dados
 interface Task {
@@ -22,6 +23,7 @@ const statusMeta: Record<string, { icon: React.ReactNode; color: string }> = {
 };
 
 export default function Dashboard() {
+  const { data: session } = useSession();
   const [data, setData] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState('');
@@ -93,7 +95,16 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="flex gap-3 print:hidden">
+          <div className="flex flex-col md:flex-row gap-3 items-center print:hidden">
+            {session?.user && (
+              <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-2 rounded-lg">
+                <UserCircleIcon className="w-5 h-5" />
+                <div className="flex flex-col">
+                  <span className="font-semibold text-white">{session.user.name}</span>
+                  <span className="text-xs text-blue-200">{session.user.email}</span>
+                </div>
+              </div>
+            )}
             <button 
               onClick={fetchData}
               className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all"
@@ -106,6 +117,12 @@ export default function Dashboard() {
               className="bg-[#B8D500] text-[#1B4D3E] font-bold px-4 py-2 rounded shadow-md flex items-center gap-2 hover:opacity-90 transition-all"
             >
               <FileTextIcon className="w-4 h-4" /> PDF
+            </button>
+            <button 
+              onClick={() => signOut({ redirect: true, callbackUrl: '/auth/signin' })}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded shadow-md flex items-center gap-2 transition-all"
+            >
+              <LogOut className="w-4 h-4" /> Sair
             </button>
           </div>
         </header>
