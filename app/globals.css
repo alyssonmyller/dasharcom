@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Poppins Font - ARCOM */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(https://www.arcom.com.br/1b7fc559f2ff15bb4d2f.woff2) format('woff2'), 
+       url(https://www.arcom.com.br/6b76e7a3d1cf1d155387.woff) format('woff');
+  unicode-range: U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* ARCOM Brand Colors */
+  --arcom-dark-green: #1B4D3E;
+  --arcom-light-green: #B8D500;
+  --arcom-accent-pink: #E40B5B;
+  --arcom-text-yellow: #D4AF37;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+}
