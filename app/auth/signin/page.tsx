@@ -41,13 +41,12 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1B4D3E] to-[#0f2f26] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#ccc] to-[#fffff] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-[#1B4D3E] text-white p-8 text-center">
           <h1 className="text-4xl font-black tracking-tighter">DASH ARCOM</h1>
-          <p className="text-blue-200 text-sm mt-2">Dashboard Tecnologia</p>
-          <p className="text-xs text-blue-100 mt-4 border-t border-white/20 pt-4">Acesso Restrito - Autenticação com Google</p>
+          <p className="text-blue-200 text-sm mt-2">Painel de Tarefas Em Tempo Real</p>
         </div>
 
         {/* Content */}
@@ -55,7 +54,7 @@ export default function SignIn() {
           <div className="text-center mb-8">
             <p className="text-gray-600 mb-2">Bem-vindo!</p>
             <p className="text-sm text-gray-500">
-              Entre com sua conta Google para acessar o dashboard
+              Entre com seu email @arcom via conta Google para acessar o dashboard
             </p>
           </div>
 
@@ -88,15 +87,7 @@ export default function SignIn() {
             )}
           </button>
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-xs text-gray-600">
-            <p className="font-semibold text-[#1B4D3E] mb-2">Emails Autorizados:</p>
-            <ul className="space-y-1">
-              <li>• alysson@arcom.com.br</li>
-              <li>• cleber@arcom.com.br</li>
-            </ul>
-          </div>
-
-          <p className="text-center text-xs text-gray-400 mt-6 border-t pt-4">
+          <p className="text-center text-xs text-gray-400 mt-6 pt-4">
             Uso Interno - Não Compartilhar
           </p>
         </div>

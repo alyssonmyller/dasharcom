@@ -61,14 +61,261 @@ export default function Dashboard() {
     const html2pdf = (await import('html2pdf.js')).default;
     const element = document.getElementById('dashboard-content');
     if (!element) return;
+
+    // Clone do elemento para manipular sem afetar o DOM
+    const clonedElement = element.cloneNode(true) as HTMLElement;
+
+    // Função para limpar apenas cores problemáticas, mantendo o layout
+    const cleanStylesForPDF = (el: Element) => {
+      if (el instanceof HTMLElement) {
+        const computedStyle = window.getComputedStyle(el);
+
+        // Lista de propriedades de cor que podem causar problemas
+        const colorProperties = ['color', 'backgroundColor', 'borderColor'];
+
+        colorProperties.forEach(prop => {
+          const value = computedStyle[prop as any];
+          if (value && (value.includes('lab') || value.includes('oklch') || value.includes('lch'))) {
+            // Substitui apenas cores problemáticas por equivalentes seguros
+            if (prop === 'color') {
+              el.style.color = '#000000';
+            } else if (prop === 'backgroundColor') {
+              // Mantém backgrounds importantes, apenas substitui cores problemáticas
+              if (value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') {
+                el.style.backgroundColor = '#ffffff';
+              }
+            } else if (prop === 'borderColor') {
+              el.style.borderColor = '#cccccc';
+            }
+          }
+        });
+
+        // Mantém classes essenciais, remove apenas as problemáticas
+        const classes = el.className?.toString().split(' ') || [];
+        const essentialClasses = classes.filter(cls => {
+          // Mantém classes de layout e espaçamento, remove apenas cores
+          return !cls.match(/^(bg-|text-|border-)/) ||
+                 cls.match(/^(bg-white|text-black|text-gray-|border-gray-)/);
+        });
+        el.className = essentialClasses.join(' ');
+
+        // Garante que elementos de texto sejam visíveis
+        if (el.tagName === 'P' || el.tagName === 'SPAN' || el.tagName === 'DIV' ||
+            el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3' ||
+            el.tagName === 'TD' || el.tagName === 'TH') {
+          el.style.color = el.style.color || '#000000';
+          el.style.backgroundColor = el.style.backgroundColor || 'transparent';
+        }
+
+        // Garante que tabelas sejam visíveis
+        if (el.tagName === 'TABLE') {
+          el.style.borderCollapse = 'collapse';
+          el.style.width = '100%';
+        }
+
+        if (el.tagName === 'TD' || el.tagName === 'TH') {
+          el.style.border = '1px solid #cccccc';
+          el.style.padding = '8px';
+        }
+      }
+
+      // Processa filhos recursivamente
+      Array.from(el.children).forEach(child => cleanStylesForPDF(child));
+    };
+
+    // Aplica limpeza seletiva
+    cleanStylesForPDF(clonedElement);
+
+    // Cria container temporário visível para debug
+    const tempContainer = document.createElement('div');
+    tempContainer.style.cssText = `
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 100%;
+      background: white;
+      color: black;
+      font-family: Arial, sans-serif;
+    `;
+    document.body.appendChild(tempContainer);
+    tempContainer.appendChild(clonedElement);
+
+    // Configurações otimizadas para PDF
     const opt = {
       margin: 10,
       filename: `Relatorio_Tecnologia_${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      image: { type: 'png' as const, quality: 0.95 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        removeContainer: true,
+        foreignObjectRendering: false,
+        ignoreElements: (element: Element) => {
+          const classes = element.className?.toString() || '';
+          return classes.includes('no-pdf') || classes.includes('hidden');
+        },
+        onclone: (clonedDoc: Document) => {
+          // Adiciona estilos de impressão CSS
+          const printStyle = clonedDoc.createElement('style');
+          printStyle.textContent = `
+            @media print {
+              * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+            }
+
+            /* Estilos base para garantir visibilidade */
+            body {
+              background: white !important;
+              color: black !important;
+              font-family: Arial, sans-serif !important;
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+            }
+
+            /* Cabeçalho */
+            header {
+              background: #f8f9fa !important;
+              color: #1B4D3E !important;
+              padding: 20px !important;
+              border-bottom: 2px solid #1B4D3E !important;
+            }
+
+            /* Títulos */
+            h1, h2, h3 {
+              color: #1B4D3E !important;
+              background: transparent !important;
+              font-weight: bold !important;
+            }
+
+            /* Tabelas */
+            table {
+              border-collapse: collapse !important;
+              width: 100% !important;
+              margin: 10px 0 !important;
+            }
+
+            th, td {
+              border: 1px solid #cccccc !important;
+              padding: 8px !important;
+              text-align: left !important;
+              color: black !important;
+              background: white !important;
+            }
+
+            th {
+              background: #f8f9fa !important;
+              font-weight: bold !important;
+            }
+
+            /* Status indicators */
+            .text-green-600 { color: #16a34a !important; }
+            .text-purple-600 { color: #9333ea !important; }
+            .text-blue-600 { color: #2563eb !important; }
+            .text-gray-500 { color: #6b7280 !important; }
+            .text-amber-600 { color: #d97706 !important; }
+            .text-red-600 { color: #dc2626 !important; }
+
+            /* Layout */
+            .grid { display: block !important; }
+            .md\\:grid-cols-2 { display: block !important; }
+            .lg\\:grid-cols-3 { display: block !important; }
+
+            /* Espaçamento */
+            .p-6 { padding: 15px !important; }
+            .gap-6 > * { margin-bottom: 20px !important; }
+
+            /* Remove elementos não essenciais */
+            .print\\:hidden { display: none !important; }
+            button { display: none !important; }
+          `;
+          clonedDoc.head.appendChild(printStyle);
+        }
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' as const }
     };
-    html2pdf().set(opt).from(element).save();
+
+    try {
+      console.log('Iniciando geração de PDF...');
+      await html2pdf().set(opt).from(clonedElement).save();
+      console.log('✓ PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF - Tentando fallback...', error);
+
+      // Fallback: versão mais simples mas funcional
+      try {
+        const fallbackOpt = {
+          margin: 10,
+          filename: `Relatorio_Tecnologia_${new Date().toISOString().split('T')[0]}.pdf`,
+          image: { type: 'png' as const, quality: 0.8 },
+          html2canvas: {
+            scale: 1.5,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            removeContainer: true,
+            onclone: (clonedDoc: Document) => {
+              // Estilos mínimos mas funcionais
+              const style = clonedDoc.createElement('style');
+              style.textContent = `
+                * {
+                  color: black !important;
+                  background: white !important;
+                  font-family: Arial, sans-serif !important;
+                }
+                body {
+                  background: white !important;
+                  color: black !important;
+                  padding: 20px !important;
+                }
+                table {
+                  border-collapse: collapse !important;
+                  width: 100% !important;
+                  margin: 20px 0 !important;
+                }
+                th, td {
+                  border: 1px solid #000 !important;
+                  padding: 8px !important;
+                  text-align: left !important;
+                }
+                th {
+                  background: #f0f0f0 !important;
+                  font-weight: bold !important;
+                }
+                h1, h2, h3 {
+                  color: #1B4D3E !important;
+                  margin: 20px 0 10px 0 !important;
+                }
+                .text-green-600 { color: #008000 !important; }
+                .text-red-600 { color: #ff0000 !important; }
+                .text-blue-600 { color: #0000ff !important; }
+                .text-purple-600 { color: #800080 !important; }
+                .text-gray-500 { color: #808080 !important; }
+                .text-amber-600 { color: #ff8c00 !important; }
+              `;
+              clonedDoc.head.appendChild(style);
+            }
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' as const }
+        };
+
+        await html2pdf().set(fallbackOpt).from(clonedElement).save();
+        console.log('✓ PDF gerado com sucesso (fallback)!');
+      } catch (fallbackError) {
+        console.error('Fallback também falhou:', fallbackError);
+        alert('❌ Erro ao gerar PDF. Tente novamente ou entre em contato com o suporte.');
+      }
+    } finally {
+      // Remove o container temporário
+      if (document.body.contains(tempContainer)) {
+        document.body.removeChild(tempContainer);
+      }
+    }
   };
 
   // Agrupamento
@@ -90,14 +337,14 @@ export default function Dashboard() {
               <span className="text-3xl font-black text-[#1B4D3E] tracking-tighter">DASH ARCOM</span>
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold uppercase italic">Dashboard Tecnologia</h1>
+              <h1 className="text-2xl font-extrabold uppercase italic">Painel de Tarefas</h1>
               <p className="text-blue-200 text-xs">Sincronização em Tempo Real</p>
             </div>
           </div>
           
           <div className="flex flex-col md:flex-row gap-3 items-center print:hidden">
             {session?.user && (
-              <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-2 text-sm  px-3 py-2 rounded-lg">
                 <UserCircleIcon className="w-5 h-5" />
                 <div className="flex flex-col">
                   <span className="font-semibold text-white">{session.user.name}</span>
@@ -105,19 +352,7 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
-            <button 
-              onClick={fetchData}
-              className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all"
-              title="Sincronizar"
-            >
-              Refresh
-            </button>
-            <button 
-              onClick={downloadPDF}
-              className="bg-[#B8D500] text-[#1B4D3E] font-bold px-4 py-2 rounded shadow-md flex items-center gap-2 hover:opacity-90 transition-all"
-            >
-              <FileTextIcon className="w-4 h-4" /> PDF
-            </button>
+            
             <button 
               onClick={() => signOut({ redirect: true, callbackUrl: '/auth/signin' })}
               className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded shadow-md flex items-center gap-2 transition-all"
