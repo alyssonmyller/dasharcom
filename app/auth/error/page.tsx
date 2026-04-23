@@ -19,14 +19,6 @@ export default function AuthError() {
             Sua conta de email não está autorizada para acessar este dashboard.
           </p>
           
-          <p className="text-sm text-gray-500 mb-6 bg-gray-50 p-4 rounded-lg">
-            Por favor, verifique se você está usando um dos emails autorizados:
-            <br />
-            • alysson@arcom.com.br
-            <br />
-            • cleber@arcom.com.br
-          </p>
-
           <Link
             href="/auth/signin"
             className="inline-block bg-[#1B4D3E] hover:bg-[#0f2f26] text-white font-bold py-2 px-6 rounded-lg transition-all"
